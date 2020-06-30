@@ -25,6 +25,7 @@ class Scene:
         self.robot = self.env.GetRobots()[0]
         self.manipulator = self.robot.GetManipulator(self.manipulator_name)
         self.eef_link = self.robot.GetLink(self.eef_link_name)
+        # self.robot.SetTransform(openravepy.matrixFromPose([1, 0, 0, 0, -0.5, 0.2, 0.8]))
 
         self.body = openravepy.RaveCreateKinBody(self.env, '')
         self.body.SetName("Collision_Scene")
@@ -56,6 +57,17 @@ class Scene:
             for j in range(3):
                 eef_traj[i, j] = p_eef_t[j]
         return eef_traj
+
+    def execute_traj_points(self, points, duration=1.0):
+        """
+        Executes a trajectory by moving through points one at a time, blocking with keyboard input between each
+
+        points: a set of joint-space trajectory waypoints, non-vectorized
+        duration: time in seconds to move from one point to the next
+        """
+        for point in points:
+            raw_input("Ready...")
+            self.follow_joint_trajectory_client.move_to(point, duration=duration)
 
 
     def execute_trajectory(self, traj):

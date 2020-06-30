@@ -19,27 +19,44 @@ def analyze_multiple_trajectories(trajectories, joint_start, joint_target, execu
         all_baseline_metrics[:, :, trajIndex] = baselineTest.run_all_baselines()
     print_metrics(all_comanipulation_metrics, all_baseline_metrics)
 
-    
+def simple_interp(start, target, name='jaco'):
+    comanipulationFramework = TrajectoryFramework(name, '')
+    comanipulationFramework.scene.robot.SetDOFValues(joint_start, comanipulationFramework.scene.manipulator.GetArmIndices())
+    comanipulationFramework.setup_ros()
+    raw_input("Ready to move to start")
+    comanipulationFramework.scene.follow_joint_trajectory_client.move_to(start)
+    raw_input("Ready to move to target")
+    comanipulationFramework.scene.follow_joint_trajectory_client.move_to(target)
+
+def run_single_test(start, target, name='jaco'):
+    comanipulationFramework = TrajectoryFramework(name, '')
+    comanipulationFramework.scene.robot.SetDOFValues(joint_start, comanipulationFramework.scene.manipulator.GetArmIndices())
+    comanipulationFramework.setup_test(start, target, traj_num=303, execute=True)
 
 if __name__ == "__main__":
 
     ################## PARAMETERS ################
     #iiwa
-    joint_start = [-0.7240388673767146, -0.34790398102066433, 2.8303899987665897, -2.54032606205873, 1.3329587647643253, 2.7596249683074614, 0.850582268802067]
-    joint_target = [-0.21084585626752084, 1.696737816218337, -2.565970219832999, 0.17682048063096367, 2.5144914879697158, 1.2588615840260928, -0.1733579520497237]
+    # joint_start = [-0.7240388673767146, -0.34790398102066433, 2.8303899987665897, -2.54032606205873, 1.3329587647643253, 2.7596249683074614, 0.850582268802067]
+    # joint_target = [-0.21084585626752084, 1.696737816218337, -2.565970219832999, 0.17682048063096367, 2.5144914879697158, 1.2588615840260928, -0.1733579520497237]
 
     #jaco
-    # joint_start = [3.941421366763722, 2.840465567025116, 0.0016481772134505363, 0.7576862412004652, -1.6470106708707843, 4.495901148004366, -1.2516118096169921]
-    # joint_target = [4.871800476914653, 1.895875884203746, 4.728695515739245, 1.2668175273349631, 4.713923493804794, 4.641769937759059, 5.034508434241916]
-    trajectories = [120, 303]
-    enable_estop = False
-    resume_safely = False
-    execute_comanipulation = True
-    execute_baseline = False
-    robot = 'iiwa'
-    collision_threshold = 0.25
-    num_baselines = 4
-    num_metrics = 4
-    ###############################################
-    analyze_multiple_trajectories(trajectories, joint_start, joint_target, execute_comanipulation, execute_baseline, enable_estop, 
-                                resume_safely, collision_threshold, num_baselines, num_metrics)
+    joint_start = [3.941421366763722, 2.840465567025116, 0.0016481772134505363, 0.7576862412004652, -1.6470106708707843, 4.495901148004366, -1.2516118096169921]
+    joint_target = [6.654985784094239, 2.1, 4.728695515739245, 4.2668175273349631, 4.713923493804794, 4.641769937759059, 5.034508434241916]
+    # simple_interp(joint_start, joint_target)
+    run_single_test(joint_start, joint_target, name='jaco')
+    
+
+    
+    # trajectories = [120, 303]
+    # enable_estop = False
+    # resume_safely = False
+    # execute_comanipulation = True
+    # execute_baseline = False
+    # robot = 'iiwa'
+    # collision_threshold = 0.25
+    # num_baselines = 4
+    # num_metrics = 4
+    # ###############################################
+    # analyze_multiple_trajectories(trajectories, joint_start, joint_target, execute_comanipulation, execute_baseline, enable_estop, 
+    #                             resume_safely, collision_threshold, num_baselines, num_metrics)

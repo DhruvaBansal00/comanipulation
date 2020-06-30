@@ -116,6 +116,8 @@ def get_separation_dist(scene, human_pos, robot_joints, human_sphere_radius=0.05
                     center_dist = calculate_distance_3d(
                         human_sphere_center, robot_sphere_center)
                     curr_distance = center_dist - human_sphere_radius - robot_sphere_radius
+                    if curr_distance < 0:
+                        curr_distance = 0
                     distance = min(distance, curr_distance)
     if plot:
         plt.show()
@@ -187,6 +189,8 @@ def compute_distance_metric(scene, human_traj_expanded, num_obs_timesteps, num_t
     robot_traj_spline = traj_calc.cubic_interpolation(robot_traj, n_robot_joints)
     num_above_threshold = 0
 
+    min_dist = 10000
+
     for t in range(num_obs_timesteps, num_total_timesteps):
         robot_timestep = (t - num_obs_timesteps) / 10.0
         robot_joints = robot_traj_spline(robot_timestep)
@@ -194,6 +198,13 @@ def compute_distance_metric(scene, human_traj_expanded, num_obs_timesteps, num_t
         dist_t = get_separation_dist(scene, human_traj_expanded[t*n_human_joints*3 : (t+1)*n_human_joints*3], robot_joints)
         if dist_t > distance_threshold:
             num_above_threshold += 1
+
+        print(dist_t)
+        if dist_t < min_dist:
+            min_dist = dist_t
+
+    print("MIN DIST: ")
+    print(min_dist)
     
     return num_above_threshold * 1.0 / (num_total_timesteps - num_obs_timesteps)
 

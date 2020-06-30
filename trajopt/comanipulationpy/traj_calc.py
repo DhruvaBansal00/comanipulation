@@ -105,6 +105,7 @@ class TrajectoryPlanner:
             init_joint, final_joint, self.n_pred_timesteps)
         if execute:
             # TODO: this method for timestep calculation should leverage class-level n_joint variables
+            # self.scene.execute_traj_points(result.GetTraj())
             self.scene.execute_full_trajectory(result.GetTraj(), self.full_rightarm_test_traj, len(
                 self.obs_rightarm_test_traj) / 12, len(self.full_rightarm_test_traj) / 12, enable_estop=enable_estop, resume_safely=resume_safely, collision_threshold=collision_threshold)
         if plot != '':
