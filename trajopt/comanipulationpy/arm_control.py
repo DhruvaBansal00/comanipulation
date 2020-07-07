@@ -70,7 +70,7 @@ class FollowTrajectoryClient(object):
         trajectory.points[0].time_from_start = rospy.Duration(duration)
         follow_goal = FollowJointTrajectoryGoal()
         follow_goal.trajectory = trajectory
-        print(follow_goal)
+        # print(follow_goal)
         self.client.send_goal(follow_goal)
         self.client.wait_for_result()
         print("Done...")
@@ -115,7 +115,7 @@ class FollowTrajectoryClient(object):
         	trajectory.points[-1].accelerations = [0.0 for _ in point]
         	trajectory.points[-1].time_from_start = rospy.Duration(t * duration)
     	follow_goal = FollowJointTrajectoryGoal()
-        print(trajectory)
+        # print(trajectory)
     	follow_goal.trajectory = trajectory
 
 

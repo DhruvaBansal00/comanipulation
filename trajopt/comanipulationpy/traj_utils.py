@@ -1,5 +1,4 @@
 import openravepy
-import trajoptpy
 import json
 import time
 import numbers

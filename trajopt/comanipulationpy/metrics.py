@@ -199,12 +199,12 @@ def compute_distance_metric(scene, human_traj_expanded, num_obs_timesteps, num_t
         if dist_t > distance_threshold:
             num_above_threshold += 1
 
-        print(dist_t)
-        if dist_t < min_dist:
-            min_dist = dist_t
+    #     print(dist_t)
+    #     if dist_t < min_dist:
+    #         min_dist = dist_t
 
-    print("MIN DIST: ")
-    print(min_dist)
+    # print("MIN DIST: ")
+    # print(min_dist)
     
     return num_above_threshold * 1.0 / (num_total_timesteps - num_obs_timesteps)
 
