@@ -10,14 +10,20 @@ import json
 import numpy as np
 import trajoptpy.kin_utils as ku
 import time
+import os.path as path
+import os
 
+print(os.getcwd())
+
+PARENT_DIR = path.abspath(path.join(path.dirname(path.abspath(__file__)), path.pardir))
+DATA_DIR = path.join(PARENT_DIR, "data")
 env = openravepy.Environment()
 env.StopSimulation()
-env.Load("../data/jaco-test.dae")
-env.Load("../data/table.xml")
+env.Load(path.join(DATA_DIR, "jaco-test.dae"))
+# env.Load(path.join(DATA_DIR, "table.xml"))
 env.SetDefaultViewer()
 
-# trajoptpy.SetInteractive(args.interactive) # pause every iteration, until you press 'p'. Press escape to disable further plotting
+trajoptpy.SetInteractive(args.interactive) # pause every iteration, until you press 'p'. Press escape to disable further plotting
 robot = env.GetRobots()[0]
 print(robot.__dict__)
 print(robot.GetManipulator('test_arm'))
@@ -35,7 +41,9 @@ robot.SetActiveManipulator(manip)
 ikmodel = openravepy.databases.inversekinematics.InverseKinematicsModel(
     robot, iktype=openravepy.IkParameterization.Type.Transform6D)
 if not ikmodel.load():
+    print("Beginning autogenerate")
     ikmodel.autogenerate()
+    print("Autogeneration complete")
 init_joint_target = ku.ik_for_link(hmat_target, manip, "j2s7s300_ee_link",
     filter_options = openravepy.IkFilterOptions.CheckEnvCollisions)
 # END ik
@@ -65,10 +73,10 @@ request = {
   "constraints" : [
   # BEGIN pose_constraint
   {
-    "type" : "test_cart_dist", 
+    "type" : "pose", 
     "params" : {"xyz" : xyz_target, 
                 "wxyz" : quat_target, 
-                "link": "j2s7s300_eef_link",
+                "link": "j2s7s300_ee_link",
                 "timestep" : 9
                 }
                  
@@ -100,14 +108,22 @@ assert traj_is_safe(result.GetTraj(), robot) # Check that trajectory is collisio
 
 # Now we'll check to see that the final constraint was satisfied
 robot.SetActiveDOFValues(result.GetTraj()[-1])
-posevec = openravepy.poseFromMatrix(robot.GetLink("test_arm").GetTransform())
+posevec = openravepy.poseFromMatrix(robot.GetLink("j2s7s300_ee_link").GetTransform())
 quat, xyz = posevec[0:4], posevec[4:7]
 
-quat *= np.sign(quat.dot(quat_target))
-if args.position_only:
-    assert (quat - quat_target).max() > 1e-3
-else:
-    assert (quat - quat_target).max() < 1e-3
+# print "Quat:"
+# print quat
+# print quat_target
+# print "Pos"
+# print xyz
+# print xyz_target
+
+# NOTE: the code below seems to be wrong
+# quat *= np.sign(quat.dot(quat_target))
+# if args.position_only:
+#     assert (quat - quat_target).max() > 1e-3
+# else:
+#     assert (quat - quat_target).max() < 1e-3
 
 
 raw_input("waiting..")
