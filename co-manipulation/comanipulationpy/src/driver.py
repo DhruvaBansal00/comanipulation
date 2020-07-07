@@ -1,12 +1,12 @@
 from trajectory_framework import TrajectoryFramework
 from tests import Test
-from metrics import print_metrics
+from metrics import print_metrics, metrics_to_csv, save_experiments
 import numpy as np
 
 
 def analyze_multiple_trajectories(trajectories, joint_start, joint_target, execute_comanipulation, execute_baseline, 
-                                enable_estop, resume_safely, collision_threshold, num_baselines, num_metrics):
-    comanipulationFramework = TrajectoryFramework(robot, '', enable_estop=enable_estop, resume_safely=resume_safely, collision_threshold=collision_threshold)
+                    num_baselines, num_metrics):
+    comanipulationFramework = TrajectoryFramework(robot, '')
     comanipulationFramework.scene.robot.SetDOFValues(joint_start, comanipulationFramework.scene.manipulator.GetArmIndices())
 
     all_comanipulation_metrics = np.zeros((num_metrics, len(trajectories)))
@@ -14,10 +14,12 @@ def analyze_multiple_trajectories(trajectories, joint_start, joint_target, execu
 
     for trajIndex, trajectory in enumerate(trajectories):
         all_comanipulation_metrics[:, trajIndex] = comanipulationFramework.setup_test(joint_start, joint_target, traj_num=trajectory, execute=execute_comanipulation)
-        baselineTest = Test(robot,joint_start, joint_target, traj_num=trajectory, execute=execute_baseline, 
-                        enable_estop=enable_estop, resume_safely=resume_safely, collision_threshold=collision_threshold)
+        baselineTest = Test(robot,joint_start, joint_target, traj_num=trajectory, execute=execute_baseline)
         all_baseline_metrics[:, :, trajIndex] = baselineTest.run_all_baselines()
+        metrics_to_csv(trajectory, all_comanipulation_metrics[:, trajIndex], all_baseline_metrics[:, :, trajIndex])
     print_metrics(all_comanipulation_metrics, all_baseline_metrics)
+    test_case = ''.join(str(test) + ", " for test in trajectories)
+    save_experiments(test_case[:-2], all_comanipulation_metrics, all_baseline_metrics)
 
 def simple_interp(start, target, name='jaco'):
     comanipulationFramework = TrajectoryFramework(name, '')
@@ -28,10 +30,12 @@ def simple_interp(start, target, name='jaco'):
     raw_input("Ready to move to target")
     comanipulationFramework.scene.follow_joint_trajectory_client.move_to(target)
 
-def run_single_test(start, target, name='jaco'):
+
+def run_single_test(start, target, name='jaco', traj=303):
     comanipulationFramework = TrajectoryFramework(name, '')
     comanipulationFramework.scene.robot.SetDOFValues(joint_start, comanipulationFramework.scene.manipulator.GetArmIndices())
-    comanipulationFramework.setup_test(start, target, traj_num=303, execute=True)
+    comanipulationFramework.setup_test(start, target, traj_num=traj, execute=True)
+    
 
 if __name__ == "__main__":
 
