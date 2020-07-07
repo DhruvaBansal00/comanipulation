@@ -11,10 +11,10 @@ import time
 env = openravepy.Environment()
 env.StopSimulation()
 env.Load("../data/jaco-test.dae")
-env.Load("../data/table.xml")
+# env.Load("../data/table.xml")
 env.SetDefaultViewer()
 
-test = True
+test = False
 
 trajoptpy.SetInteractive(args.interactive) # pause every iteration, until you press 'p'. Press escape to disable further plotting
 robot = env.GetRobots()[0]
@@ -35,32 +35,16 @@ request = {
   },
   "costs" : [
   {
-    "type" : "visibility_baseline_cost", #  cost
-    "params": {"coeffs" : 1.0,
-               "head_pos" : [0, 0, 0],
-               "obj_pos" : [1, 1, 1],
-               "link" : "j2s7s300_ee_link"
-    }
-  },
-  {
     "type" : "collision",
     "params" : {
       "coeffs" : [20], # penalty coefficients. list of length one is automatically expanded to a list of length n_timesteps
       "dist_pen" : [0.025] # robot-obstacle distance that penalty kicks in. expands to length n_timesteps
     },    
   },
-  
   {
-    "type" : "legibility_cost", 
-    "params" : {"xyz" : [6.51073449e-01,  -1.87673551e-01, 4.91061915e-01], 
-                "wxyz" : [1, 0, 0, 0], 
-                "link": "j2s7s300_ee_link",
-                "rot_coeffs" : [0,0,0],
-                "pos_coeffs" : 1.0,
-                "timestep" : 5
-                }
-                 
-  }
+    "type" : "joint_vel", # joint-space velocity cost
+    "params": {"coeffs" : [1]} # a list of length one is automatically expanded to a list of length n_dofs
+  },
   ],
   "constraints" : [
   {
