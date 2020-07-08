@@ -105,31 +105,15 @@ class TrajectoryFramework:
 
         num_timesteps = self.trajectory_solver.n_pred_timesteps
 
-        coeffsd = {
+        coeffs = {
             'nominal': 10.0,
-            'distance': [10000.0 for _ in range(num_timesteps)],
+            'distance': [1000.0 for _ in range(num_timesteps)],
             'velocity': [100.0 for _ in range(num_timesteps)],
-            'visibility': [0.5 for _ in range(num_timesteps)],
+            'visibility': [2.5 for _ in range(num_timesteps)],
             'regularize': [5.0 for _ in range(num_timesteps - 1)],
-            'legibility': 100.0,
+            'legibility': 500.0,
             'collision': dict(cost=[20], dist_pen=[0.025]),
             'smoothing': dict(cost=200, type=2)
-        }
-
-        # coeffs = {
-        #     'nominal': 10.0,
-        #     'distance': [20000.0 for _ in range(num_timesteps)],
-        #     'velocity': [100.0 for _ in range(num_timesteps)],
-        #     # 'visibility': [2.5 for _ in range(num_timesteps)],
-        #     'regularize': [5.0 for _ in range(num_timesteps - 1)],
-        #     'legibility': 500.0,
-        #     'collision': dict(cost=[20], dist_pen=[0.025]),
-        #     'smoothing': dict(cost=200, type=2)
-        # }
-
-        coeffs = {
-            'distance': [20000.0 for _ in range(num_timesteps)],
-            'regularize': [0.5 for _ in range(num_timesteps - 1)],
         }
 
         if traj_num > 0 and not self.is_real:
