@@ -37,11 +37,9 @@ def to_spider_plot_format():
     Will be able to copy and paste the output to radar_test.m for graph creation.
     """
     file_name = '../human_prob_models/scripts/csvFiles/ExperimentResults.csv'
-    file = csv.reader(open(file_name), delimiter=',')
-    lines = []
-    for line in file:
-        lines.append(line)
-    lines = lines[1:]
+    with open(file_name, 'r') as f:
+        file = csv.reader(f, delimiter=',')
+        lines = list(file)[1:]
     test_to_format(1, lines)
 
 to_spider_plot_format()
