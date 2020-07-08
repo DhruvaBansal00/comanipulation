@@ -47,20 +47,19 @@ if __name__ == "__main__":
     #jaco
     # joint_start = [0.31, 4.63, -1.76, 4.56, -1.58, 4.64, 0]
     # joint_target = [3.1, 4.63, -1.78, 4.56, -3.1, 4.64, 0]
+
     # simple_interp(joint_start, joint_target)
-    run_single_test(joint_start, joint_target, name='iiwa')
+    # run_single_test(joint_start, joint_target, name='iiwa')
     
 
     
-    # trajectories = [120, 303]
-    # enable_estop = False
-    # resume_safely = False
-    # execute_comanipulation = True
-    # execute_baseline = False
-    # robot = 'iiwa'
-    # collision_threshold = 0.25
-    # num_baselines = 4
-    # num_metrics = 4
-    # ###############################################
-    # analyze_multiple_trajectories(trajectories, joint_start, joint_target, execute_comanipulation, execute_baseline, enable_estop, 
-    #                             resume_safely, collision_threshold, num_baselines, num_metrics)
+    trajectories = [120, 303]
+    execute_comanipulation = True
+    execute_baseline = False
+    robot = 'iiwa'
+    collision_threshold = 0.25
+    num_baselines = 4
+    num_metrics = 4
+    ###############################################
+    analyze_multiple_trajectories(trajectories, joint_start, joint_target, execute_comanipulation, execute_baseline,
+          num_baselines, num_metrics)
