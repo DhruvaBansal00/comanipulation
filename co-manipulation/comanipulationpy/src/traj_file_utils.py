@@ -129,8 +129,17 @@ def read_human_poses_mean(csv_path, mode=2):
         
         for row in csv_reader:
             curr_row = []
+            idx = 0
             for col in row:
-                curr_row.append(float(col))
+                my_col = float(col)
+                # if idx % 3 == 0:
+                #     my_col += 0.5
+                # elif idx % 3 == 1:
+                #     my_col -= 0.2
+                # elif idx % 3 == 2:
+                #     my_col -= 0.8
+                idx += 1
+                curr_row.append(my_col)
             if mode == 1:
                 mean.append(curr_row)
             elif mode == 2:
