@@ -5,6 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+from matplotlib.patches import Circle, RegularPolygon
+from matplotlib.path import Path
+from matplotlib.projections.polar import PolarAxes
+from matplotlib.projections import register_projection
+from matplotlib.spines import Spine
+from matplotlib.transforms import Affine2D
+
 
 
 if __name__ == "__main__":
@@ -210,4 +217,127 @@ def plot_spheres(human_joints_pos, robot_joints_pos, human_center=None, robot_ce
         ax.scatter([i[0] for i in human_center], [i[1] for i in human_center], zs=[i[2] for i in human_center], label="human", color="green")
     if robot_centers:
         ax.scatter([i[0] for i in robot_centers], [i[1] for i in robot_centers], zs=[i[2] for i in robot_centers], label="robot", color="yellow")
+    plt.show()
+
+def radar_factory(num_vars, frame='circle'):
+    """
+    credit https://matplotlib.org/3.1.3/gallery/specialty_plots/radar_chart.html
+    Create a radar chart with `num_vars` axes.
+
+    This function creates a RadarAxes projection and registers it.
+
+    Parameters
+    ----------
+    num_vars : int
+        Number of variables for radar chart.
+    frame : {'circle' | 'polygon'}
+        Shape of frame surrounding axes.
+
+    """
+    # calculate evenly-spaced axis angles
+    theta = np.linspace(0, 2*np.pi, num_vars, endpoint=False)
+
+    class RadarAxes(PolarAxes):
+
+        name = 'radar'
+        # use 1 line segment to connect specified points
+        RESOLUTION = 1
+
+        def __init__(self, *args, **kwargs):
+            super(RadarAxes, self).__init__(*args, **kwargs)
+            # rotate plot such that the first axis is at the top
+            self.set_theta_zero_location('N')
+            
+        def fill(self, *args, **kwargs):
+            """Override fill so that line is closed by default"""
+            closed = True
+            if 'closed' in kwargs:
+                closed = kwargs['closed']
+            return super(RadarAxes, self).fill(closed=closed, *args, **kwargs)
+
+        def plot(self, *args, **kwargs):
+            """Override plot so that line is closed by default"""
+            lines = super(RadarAxes, self).plot(*args, **kwargs)
+            for line in lines:
+                self._close_line(line)
+
+        def _close_line(self, line):
+            x, y = line.get_data()
+            # FIXME: markers at x[0], y[0] get doubled-up
+            if x[0] != x[-1]:
+                x = np.concatenate((x, [x[0]]))
+                y = np.concatenate((y, [y[0]]))
+                line.set_data(x, y)
+
+        def set_varlabels(self, labels):
+            self.set_thetagrids(np.degrees(theta), labels)
+
+        def _gen_axes_patch(self):
+            # The Axes patch must be centered at (0.5, 0.5) and of radius 0.5
+            # in axes coordinates.
+            if frame == 'circle':
+                return Circle((0.5, 0.5), 0.5)
+            elif frame == 'polygon':
+                return RegularPolygon((0.5, 0.5), num_vars,
+                                      radius=.5, edgecolor="k")
+            else:
+                raise ValueError("unknown value for 'frame': %s" % frame)
+
+        def _gen_axes_spines(self):
+            if frame == 'circle':
+                return super(RadarAxes, self)._gen_axes_spines()
+            elif frame == 'polygon':
+                # spine_type must be 'left'/'right'/'top'/'bottom'/'circle'.
+                spine = Spine(axes=self,
+                              spine_type='circle',
+                              path=Path.unit_regular_polygon(num_vars))
+                # unit_regular_polygon gives a polygon of radius 1 centered at
+                # (0, 0) but we want a polygon of radius 0.5 centered at (0.5,
+                # 0.5) in axes coordinates.
+                spine.set_transform(Affine2D().scale(.5).translate(.5, .5)
+                                    + self.transAxes)
+                return {'polar': spine}
+            else:
+                raise ValueError("unknown value for 'frame': %s" % frame)
+
+    register_projection(RadarAxes)
+    return theta
+
+
+def show_radar_chart(our_data, other_data):
+    """
+    Creates several radar charts showing performance
+
+    our_data: list of our data, in order ["dst", "vis", "leg", "nom"]
+    other_data: list of tuples containing first the name of the method, then a list of same type as in our_data
+    """
+    if len(our_data) != 4:
+        raise TypeError
+    theta = radar_factory(4, frame='polygon')
+
+    spoke_labels = ["dst", "vis", "leg", "nom"]
+
+    fig, axes = plt.subplots(figsize=(9, 9), nrows=2, ncols=len(other_data)//2,
+                             subplot_kw=dict(projection='radar'))
+    fig.subplots_adjust(wspace=0.25, hspace=0.20, top=0.85, bottom=0.05)
+
+    our_color = "b"
+    other_colors = ['r', 'g', 'm', 'y']
+
+    max_nom = max(max([d[3] for _, d in other_data]), our_data[3])
+    our_data[3] = our_data[3]/max_nom
+
+    for idx, (title, case_data) in enumerate(other_data):
+        case_data[3] = case_data[3]/max_nom
+        ax = axes.flat[idx]
+        other_color = other_colors[idx]
+
+        ax.set_rgrids([0.2, 0.4, 0.6, 0.8])
+        ax.set_title(title, weight='bold', size='medium', position=(0.5, 1.1),
+                     horizontalalignment='center', verticalalignment='center')
+        ax.plot(theta, case_data, color=other_color)
+        # ax.fill(theta, case_data, color=other_color)
+        ax.plot(theta, our_data, color=our_color)
+        ax.set_varlabels(spoke_labels)
+
     plt.show()
