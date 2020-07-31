@@ -6,3 +6,5 @@ co-manipulation/comanipulationpy/src/trajectories
 *.pyc
 **/__pycache__
 **/.vscode
+co-manipulation/comanipulationpy/human_prob_models/scripts/csvFiles/TestingResults.csv
+co-manipulation/comanipulationpy/human_prob_models/scripts/csvFiles/ExperimentResults.csv
