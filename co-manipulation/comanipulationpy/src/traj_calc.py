@@ -8,11 +8,15 @@ import plots
 import json
 import trajoptpy
 # trajoptpy.SetInteractive(True)
+import trajoptpy.math_utils as mu
+import random
 
 from scipy.interpolate import CubicSpline
 
 import time
 
+ADD_RANDOM_CONFIG = False
+CHECK_SYMMETRIC_TRAJ = True
 
 class TrajectoryPlanner:
     def __init__(self, scene, n_human_joints=11, n_robot_joints=7):
@@ -199,9 +203,94 @@ class TrajectoryPlanner:
         if "joint_vel" in coeffs:
             req_util.add_joint_vel_cost(request, coeffs["joint_vel"])
 
+        if CHECK_SYMMETRIC_TRAJ:
+            final_joint = self.get_best_goal(self.scene.robot.GetDOFValues().tolist(), final_joint)
+            req_util.set_goal(request, final_joint)
+            self.scene.robot.SetDOFValues(init_joint, self.scene.manipulator.GetArmIndices())
+
+        if ADD_RANDOM_CONFIG:
+            random_traj = self.get_random_start_traj(self.scene.robot.GetDOFValues().tolist(), final_joint)
+            req_util.set_init_traj(request, random_traj)
+            self.scene.robot.SetDOFValues(init_joint, self.scene.manipulator.GetArmIndices())
+
         result = self.optimize_problem(request)
         eef_traj = self.scene.follow_trajectory(np.array(result.GetTraj()))
         return result, eef_traj
+
+    def get_best_goal(self, start, end):
+        alternate_end = [j for j in end]
+        base_joint_idx = self.scene.manipulator.GetArmIndices()[0]
+        base_joint_limits = self.scene.robot.GetJoints()[base_joint_idx].GetLimits()
+        base_joint_min, base_joint_max = base_joint_limits[0][0], base_joint_limits[1][0]
+
+        if start[0] > end[0]:
+            while start[0] > alternate_end[0]:
+                alternate_end[0] += 2*3.1415926
+            if alternate_end[0] > base_joint_max:
+                print "Can't check alternative, %0.3f > %0.3f" % (alternate_end[0], base_joint_max)
+                return end
+        else:
+            while start[0] < alternate_end[0]:
+                alternate_end[0] -= 2*3.1415926
+            if alternate_end[0] < base_joint_min:
+                print "Can't check alternative, %0.3f < %0.3f" % (alternate_end[0], base_joint_max)
+                return end
+        
+        default_traj = mu.linspace2d(start, end, self.n_pred_timesteps)
+        alternate_traj = mu.linspace2d(start, alternate_end, self.n_pred_timesteps)
+        default_traj_score = self.score_traj(default_traj) 
+        alternate_traj_score = self.score_traj(alternate_traj)
+
+        print "Default traj score: %0.3f\nAlternative traj score: %0.3f" % (default_traj_score, alternate_traj_score)
+
+        if default_traj_score > alternate_traj_score:
+            return end
+        return alternate_end
+
+    def get_random_joint_config(self):
+        while True:
+            cfg = self.get_random_joint_config_helper()
+            posn = self.scene.get_eef_position(cfg)
+            if posn[2] > 0.1: # this gets a configuration with the eef at least 0.1 m above the ground
+                return cfg
+
+    def get_random_joint_config_helper(self):
+        ret_val = []
+        joint_list = self.scene.robot.GetJoints()
+        for joint_idx in self.scene.manipulator.GetArmIndices():
+            joint_min = joint_list[joint_idx].GetLimits()[0][0]
+            joint_max = joint_list[joint_idx].GetLimits()[1][0]
+            val = random.uniform(joint_min, joint_max)
+            ret_val.append(val)
+        return ret_val
+
+    def get_traj_through_waypoint(self, start, waypoint, end):
+        waypoint_step = self.n_pred_timesteps // 2
+        inittraj = np.empty((self.n_pred_timesteps, 7))
+        inittraj[:waypoint_step+1] = mu.linspace2d(start, waypoint, waypoint_step+1)
+        inittraj[waypoint_step:] = mu.linspace2d(waypoint, end, self.n_pred_timesteps - waypoint_step)
+        return inittraj
+
+    def score_traj(self, traj):
+        n_obs_timesteps = len(self.obs_rightarm_test_traj) / 12
+        return 5 * metrics.compute_distance_metric(
+            self.scene,
+            self.full_complete_test_traj,
+            n_obs_timesteps,
+            n_obs_timesteps + self.n_pred_timesteps,
+            traj
+        ) - 0.15 * sum(np.linalg.norm(traj[i+1] - traj[i]) for i in range(len(traj) - 1))
+
+    def get_random_start_traj(self, start, end, n_config=60):
+        best_traj = self.get_traj_through_waypoint(start, self.get_random_joint_config(), end)
+        best_metrics = self.score_traj(best_traj)
+        for _ in range(n_config):
+            curr_traj = self.get_traj_through_waypoint(start, self.get_random_joint_config(), end)
+            curr_score = self.score_traj(curr_traj)
+            if curr_score > best_metrics:
+                best_traj = curr_traj
+                best_metrics = curr_score
+        return [row.tolist() for row in  best_traj]
 
     def calculate_adaptive_trajectory(self, robot_joints, human_traj):
         '''

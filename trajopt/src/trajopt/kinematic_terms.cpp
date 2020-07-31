@@ -178,6 +178,46 @@ struct UpErrorCalculator {
 //////////////////////////////////
 
 // Distance Cost
+// VectorXd DistanceCostCalculator::operator()(const VectorXd& dof_vals) const {
+
+//   int num_timesteps = dof_vals.size() / 7;
+
+//   // MatrixXd distances_costs(num_timesteps, 7 * n_human_joints_);
+//   VectorXd costs_vals(num_timesteps);
+
+//   double err_ = 0.0;
+
+//   // for each timestep
+//   for (int t = 0; t < num_timesteps; t++) {
+
+//     costs_vals(t) = 0;
+//     // Set robot to pose for timestep
+//     manip_->SetDOFValues(toDblVec(dof_vals.segment(t * 7, 7)));
+
+//     // For each robot joint
+//     for (int i = 0; i < links_.size(); i++) {
+//       // Get 3D position of robot joint
+//       KinBody::LinkPtr link = links_.at(i);
+//       Vector3d curr_joint_pos = toVector3d(link->GetTransform().trans);
+
+//       // For each human joint
+//       for (int j = 0; j < n_human_joints_; j++) {
+
+//         // Get distance of robot joint with human joint's expected value
+//         Vector3d dist = (human_poses_mean_.at(t * n_human_joints_ + j) - curr_joint_pos).cwiseAbs();
+
+//         // Calculate distance cost as quadratic
+//         double dist_cost_inv = dist.transpose() * human_poses_var_.at(t * n_human_joints_ + j).inverse() * dist;
+//         double dist_cost_quad = 1.0 / dist_cost_inv;
+        
+//         costs_vals(t) += dist_cost_quad;
+//       }
+//     }
+//   }
+//   return costs_vals;
+// }
+
+// Distance Cost
 VectorXd DistanceCostCalculator::operator()(const VectorXd& dof_vals) const {
 
   int num_timesteps = dof_vals.size() / 7;
@@ -186,13 +226,33 @@ VectorXd DistanceCostCalculator::operator()(const VectorXd& dof_vals) const {
   VectorXd costs_vals(num_timesteps);
 
   double err_ = 0.0;
+  double last_timestep_total_dist = 0.0;
+  double next_timestep_total_dist = (dof_vals.segment(0, 7) - dof_vals.segment(7, 7)).norm();;
+  int next_timestep_idx = 1;
+
+  double total_joint_dist = 0.0;
+  for (int t = 0; t < num_timesteps - 1; t++){
+    total_joint_dist += (dof_vals.segment((t + 1) * 7, 7) - dof_vals.segment(t * 7, 7)).norm();
+  }
+  double increment_dist = total_joint_dist / (num_timesteps + 1);
+  double curr_dist = 0.0;
 
   // for each timestep
   for (int t = 0; t < num_timesteps; t++) {
-
     costs_vals(t) = 0;
+
+    curr_dist += increment_dist;
+    while (next_timestep_total_dist < curr_dist) {
+      next_timestep_idx++;
+      last_timestep_total_dist = next_timestep_total_dist;
+      next_timestep_total_dist += (dof_vals.segment((next_timestep_idx) * 7, 7) - dof_vals.segment((next_timestep_idx - 1) * 7, 7)).norm();
+    }
+    double remaining_dist = curr_dist - last_timestep_total_dist;
+    VectorXd step_vec = dof_vals.segment((next_timestep_idx) * 7, 7) - dof_vals.segment((next_timestep_idx - 1) * 7, 7);
+    VectorXd curr_manip_dof = dof_vals.segment((next_timestep_idx - 1) * 7, 7) + (remaining_dist / step_vec.norm())*step_vec;
+
     // Set robot to pose for timestep
-    manip_->SetDOFValues(toDblVec(dof_vals.segment(t * 7, 7)));
+    manip_->SetDOFValues(toDblVec(curr_manip_dof));
 
     // For each robot joint
     for (int i = 0; i < links_.size(); i++) {

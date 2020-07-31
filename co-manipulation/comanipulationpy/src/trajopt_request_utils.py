@@ -20,6 +20,12 @@ def create_empty_request(num_timesteps, joint_target, manipulator_name):
     }
     return request
 
+def set_goal(request, goal):
+    request["init_info"]["endpoint"] = goal
+    for cnstr in request["constraints"]:
+        if "type" in cnstr and cnstr["type"] == "joint":
+            cnstr["params"] = {"vals" : goal }
+            return
 
 def set_init_traj(request, init_traj):
     request["init_info"]["type"] = "given_traj"

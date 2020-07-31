@@ -108,7 +108,8 @@ class TrajectoryFramework:
 
         coeffs = {
             "nominal": 100.0,
-            "distance": [2000.0 for _ in range(num_timesteps)],
+            # "distance": [4500.0 for _ in range(num_timesteps)],
+            "distance": [(4500.0 * 2.0 * min(n, num_timesteps - n))/float(num_timesteps) for n in range(num_timesteps)],
             "visibility": [1.5 for _ in range(num_timesteps)],
             "regularize": [7.0 for _ in range(num_timesteps - 1)],
             "legibility": 2000.0,
