@@ -82,7 +82,7 @@ class TrajectoryFramework:
             len(self.trajectory_solver.obs_rightarm_test_traj) / 12, # assuming 4 arm joints
             OBJECT_POS, default_traj)
 
-    def setup_test(self, init_joint, final_joint, traj_num=-1, execute=False):
+    def setup_test(self, init_joint, final_joint, coeffs, traj_num=-1, execute=False):
         """
         Gets a predicted human trajectory with ROS, then solves an optimal trajectory to respond 
         and potentially executes it.
@@ -105,16 +105,6 @@ class TrajectoryFramework:
             self.trajectory_solver.set_traj(complete_pred_traj_means, complete_pred_traj_vars)
 
         num_timesteps = self.trajectory_solver.n_pred_timesteps
-
-        coeffs = {
-            "nominal": 100.0,
-            "distance": [2000.0 for _ in range(num_timesteps)],
-            "visibility": [1.5 for _ in range(num_timesteps)],
-            "regularize": [7.0 for _ in range(num_timesteps - 1)],
-            "legibility": 2000.0,
-            "collision": dict(cost=[20], dist_pen=[0.025]),
-            "smoothing": dict(cost=300, type=2)
-        }
 
         if traj_num > 0 and not self.is_real:
             result, _ = self.trajectory_solver.solve_traj_save_plot_exec(init_joint, final_joint, coeffs=coeffs, 
