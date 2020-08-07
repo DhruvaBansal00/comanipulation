@@ -16,7 +16,7 @@ from scipy.interpolate import CubicSpline
 import time
 
 ADD_RANDOM_CONFIG = False
-CHECK_SYMMETRIC_TRAJ = True
+CHECK_SYMMETRIC_TRAJ = False
 
 class TrajectoryPlanner:
     def __init__(self, scene, n_human_joints=11, n_robot_joints=7):
@@ -213,6 +213,8 @@ class TrajectoryPlanner:
             req_util.set_init_traj(request, random_traj)
             self.scene.robot.SetDOFValues(init_joint, self.scene.manipulator.GetArmIndices())
 
+        # raw_input("Enter to continue...")
+
         result = self.optimize_problem(request)
         eef_traj = self.scene.follow_trajectory(np.array(result.GetTraj()))
         return result, eef_traj
@@ -279,7 +281,7 @@ class TrajectoryPlanner:
             n_obs_timesteps,
             n_obs_timesteps + self.n_pred_timesteps,
             traj
-        ) - 0.15 * sum(np.linalg.norm(traj[i+1] - traj[i]) for i in range(len(traj) - 1))
+        ) #- 0.05 * sum(np.linalg.norm(traj[i+1] - traj[i]) for i in range(len(traj) - 1))
 
     def get_random_start_traj(self, start, end, n_config=60):
         best_traj = self.get_traj_through_waypoint(start, self.get_random_joint_config(), end)
