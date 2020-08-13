@@ -12,6 +12,7 @@
 #include <Eigen/Geometry>
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 using namespace sco;
@@ -186,6 +187,7 @@ VectorXd DistanceCostCalculator::operator()(const VectorXd& dof_vals) const {
   VectorXd costs_vals(num_timesteps);
 
   double err_ = 0.0;
+  Vector3d min_distance = Vector3d(0.8670, 0.8670, 0.8670); 
 
   // for each timestep
   for (int t = 0; t < num_timesteps; t++) {
@@ -209,8 +211,17 @@ VectorXd DistanceCostCalculator::operator()(const VectorXd& dof_vals) const {
         // Calculate distance cost as quadratic
         double dist_cost_inv = dist.transpose() * human_poses_var_.at(t * n_human_joints_ + j).inverse() * dist;
         double dist_cost_quad = 1.0 / dist_cost_inv;
+
+        double max_dist_cost = min_distance.transpose() * human_poses_var_.at(t * n_human_joints_ + j).inverse() * min_distance;
+        double max_dist_cost_quad = 1.0 / max_dist_cost;
+
+        double normalized_cost = dist_cost_quad / max_dist_cost_quad;
         
-        costs_vals(t) += dist_cost_quad;
+        std::ofstream outfile;
+        outfile.open("distance_normalized_cost.txt", std::ios_base::app); // append instead of overwrite
+        outfile << normalized_cost << "\n";
+
+        costs_vals(t) += normalized_cost;
       }
     }
   }
