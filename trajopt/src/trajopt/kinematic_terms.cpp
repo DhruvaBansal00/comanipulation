@@ -12,6 +12,7 @@
 #include <Eigen/Geometry>
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 
 using namespace std;
 using namespace sco;
@@ -382,9 +383,13 @@ VectorXd VisibilityCostCalculator::operator()(const VectorXd& dof_vals) const {
 
   int num_timesteps = dof_vals.size() / 7;
   double threshold = 1.4;
+  double pi = 3.14159265358979323846;
+  double max_var = 0;
 
   VectorXd err(num_timesteps);
   // double alpha = 0.5;
+  ofstream myfile;
+  myfile.open ("/home/parallels/catkin_ws/src/comanipulation/trajopt/src/trajopt/cost_tests/visibility.txt");
 
   // for each timestep
   for (int t = 0; t < num_timesteps; t++) {
@@ -408,7 +413,7 @@ VectorXd VisibilityCostCalculator::operator()(const VectorXd& dof_vals) const {
 
     // original vis cost 
     err(t) = angle / head_pos_var_.at(t).norm();
-
+    max_var = max(max_var, head_pos_var_.at(t).norm());
     // // Elliptical FoV setup
     // // Transform EEF position to gaze frame...
     // Vector3d gaze_p_eef_t = (0, 0, 0);
@@ -424,6 +429,12 @@ VectorXd VisibilityCostCalculator::operator()(const VectorXd& dof_vals) const {
     // // Scale and add errors, multiply by variance
     // err(t) = head_pos_var_.at(t).norm() * (alpha * horizontal_error + vertical_error);
   }
+  double norm = pi / max_var;
+  for (int t = 0; t < num_timesteps; t++) {
+    err(t) = err(t) / norm;
+  }
+  myfile << err;
+  myfile.close();
 
   return err;
 
