@@ -8,7 +8,8 @@ from operator import add
 
 def create_human_trajectory_tree(right_arm_trajectory):
     num_timesteps = len(right_arm_trajectory)/12
-
+    print('Printing right arm traj')
+    print(right_arm_trajectory)
     human_trajectory = {}
 
     human_trajectory["right_shoulder"] = []

@@ -75,12 +75,15 @@ class TrajectoryPlanner:
         self.n_pred_timesteps = len(
             self.complete_pred_traj_means_expanded) / (self.n_human_joints * 3)
         
+
         self.full_complete_test_traj = traj_utils.create_human_plot_traj(self.full_rightarm_test_traj)
+        
         self.obs_complete_test_traj = traj_utils.create_human_plot_traj(self.obs_rightarm_test_traj)
         self.num_human_timesteps = len(self.full_complete_test_traj) / (self.n_human_joints * 3)
         self.final_obs_timestep_ind = len(self.obs_complete_test_traj) / (self.n_human_joints * 3)
         head_ind = 5
         torso_ind = 6
+        
         self.head_pos = self.full_complete_test_traj[(self.final_obs_timestep_ind * self.n_human_joints + head_ind) * 3 : (self.final_obs_timestep_ind * self.n_human_joints + head_ind + 1) * 3]
         self.torso_pos = self.full_complete_test_traj[(self.final_obs_timestep_ind * self.n_human_joints + torso_ind) * 3 : (self.final_obs_timestep_ind * self.n_human_joints + torso_ind + 1) * 3]
         self.feet_pos = [self.torso_pos[0], self.torso_pos[1], self.torso_pos[2] - 0.5]
@@ -123,8 +126,8 @@ class TrajectoryPlanner:
                 self.full_rightarm_test_traj)
             plots.plot_trajectory(eef_traj, "Distance", default_traj, "Joint Space Linear",
                                   plot, full_complete_test_traj, 11)
-        if save != '':
-            np.savetxt(save, eef_traj, delimiter=',')
+        #if save != '':
+            #np.savetxt(save, eef_traj, delimiter=',')
             
         return result, eef_traj
 

@@ -32,7 +32,11 @@ class Traj:
                 curr_frame.append(obv[index].pose.position.z)
             traj.append(curr_frame)
         expData, expSigma = self.matlab.UOLA_predict('trainedGMM.mat', matlab.double(traj), 'prediction.csv', nargout=2)
-        self.pred = str(expData)+"splitTag"+str(expSigma)
+        #print(np.array(traj).shape)
+        for row in traj:
+            del row[0]
+        print(np.array(traj).shape)
+        self.pred = str(traj) + "splitTag" + str(expData)+"splitTag"+str(expSigma)
 
 
 def callback(data, curr_obsv):
@@ -45,8 +49,8 @@ def listener(eng):
     rospy.init_node('predictor', anonymous=False)
     pub = rospy.Publisher('human_traj_pred', String, queue_size=10)
     curr_obsv = Traj(eng, pub)
-    rospy.Subscriber("human_traj_stream", MarkerArray, callback, (curr_obsv))
-
+    rospy.Subscriber("/front/body_tracking_data", MarkerArray, callback, (curr_obsv))
+    #/front/body_tracking_data
     rate = rospy.Rate(30)
     while not rospy.is_shutdown():
         if curr_obsv.pred is not None:
