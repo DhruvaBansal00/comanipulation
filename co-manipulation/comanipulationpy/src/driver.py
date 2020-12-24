@@ -40,7 +40,7 @@ if __name__ == "__main__":
     #jaco
     #joint_start = [3.941421366763722, 2.840465567025116, 0.0016481772134505363, 0.7576862412004652, -1.6470106708707843, 4.495901148004366, -1.2516118096169921]
     #joint_target = [4.871800476914653, 1.895875884203746, 4.728695515739245, 1.2668175273349631, 4.713923493804794, 4.641769937759059, 5.034508434241916]
-    trajectories = [2600]
+    trajectories = [120]
     #trajectories = [520, 524, 544, 604, 640] #Stationary case
     execute_comanipulation = True
     execute_baseline = False
@@ -51,3 +51,4 @@ if __name__ == "__main__":
     ###############################################
     analyze_multiple_trajectories(trajectories, joint_start, joint_target, execute_comanipulation, 
         execute_baseline, plot_baselines, num_baselines, num_metrics)  
+#g++ -std=c++17 -I ../eigen/ example.cpp -o example_executable

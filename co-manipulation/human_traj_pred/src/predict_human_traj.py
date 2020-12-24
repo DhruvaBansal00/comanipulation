@@ -6,6 +6,7 @@ from std_msgs.msg import String
 from visualization_msgs.msg import MarkerArray, Marker
 import numpy as np
 import ast
+from math import e
 
 class Traj:
     def __init__(self, eng, pub):
@@ -13,6 +14,7 @@ class Traj:
         self.matlab = eng
         self.pub = pub
         self.pred = None
+        self.transform = np.array([[1, -0.123406, -1.31964],[-4.59668*e**-15, -0.00543854, -0.75281], [5.55112*e**-15, 0, 1]])
     
     def add(self, obv):
         self.obsv.append(obv)
@@ -27,12 +29,13 @@ class Traj:
         for obv in self.obsv:
             curr_frame = [0]
             for index in shoulder_elbow_wrist_palm:
-                curr_frame.append(obv[index].pose.position.x)
-                curr_frame.append(obv[index].pose.position.y)
+                old_coords = np.array([obv[index].pose.position.x, obv[index].pose.position.y, 1])
+                new_coords = np.matmul(self.transform, old_coords.T)
+                curr_frame.append(new_coords[0])
+                curr_frame.append(new_coords[1])
                 curr_frame.append(obv[index].pose.position.z)
             traj.append(curr_frame)
         expData, expSigma = self.matlab.UOLA_predict('trainedGMM.mat', matlab.double(traj), 'prediction.csv', nargout=2)
-        #print(np.array(traj).shape)
         for row in traj:
             del row[0]
         print(np.array(traj).shape)
