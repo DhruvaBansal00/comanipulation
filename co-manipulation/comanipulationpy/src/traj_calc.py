@@ -41,7 +41,7 @@ class TrajectoryPlanner:
 
         return result
 
-    def get_default_traj(self, init_joint, final_joint, num_timesteps):
+    def get_default_traj(self, init_joint, final_joint, num_timesteps, potential_goal_states):
         """
         Returns a trajectory constrained only by joint velocities and the
         corresponding end effector cartesian trajectory
@@ -52,7 +52,7 @@ class TrajectoryPlanner:
         self.scene.robot.SetDOFValues(init_joint, self.scene.manipulator.GetArmIndices())
 
         request = req_util.create_empty_request(
-            num_timesteps, final_joint, self.scene.manipulator_name)
+            num_timesteps, final_joint, self.scene.manipulator_name, potential_goal_states)
 
         req_util.add_joint_vel_cost(request, 1)
 
@@ -103,7 +103,7 @@ class TrajectoryPlanner:
         self.n_pred_timesteps = len(
             self.complete_pred_traj_means_expanded) / (self.n_human_joints * 3)
 
-    def solve_traj_save_plot_exec(self, init_joint, final_joint, coeffs={}, object_pos=[0, 0.2, 0.83],
+    def solve_traj_save_plot_exec(self, init_joint, final_joint, potential_goal_states, coeffs={}, object_pos=[0, 0.2, 0.83],
                 plot='', execute=False, save=''):
         """
         NOTE: THIS IS ONLY COMPATIBLE WITH TRAJECTORIES THAT HAVE BEEN LOADED IN WITH load_traj_file
@@ -114,9 +114,9 @@ class TrajectoryPlanner:
         execute: whether to execute the calculated trajectory (boolean)
         save: where to save the trajectory as a text file, empty string to do nothing
         """
-        result, eef_traj = self.solve_traj(init_joint, final_joint, coeffs=coeffs, object_pos=object_pos)
+        result, eef_traj = self.solve_traj(init_joint, final_joint, potential_goal_states, coeffs=coeffs, object_pos=object_pos)
         _, default_traj = self.get_default_traj(
-            init_joint, final_joint, self.n_pred_timesteps)
+            init_joint, final_joint, self.n_pred_timesteps,potential_goal_states)
         if execute:
             # TODO: this method for timestep calculation should leverage class-level n_joint variables
             self.scene.execute_full_trajectory(result.GetTraj(), self.full_rightarm_test_traj, len(
@@ -131,7 +131,7 @@ class TrajectoryPlanner:
             
         return result, eef_traj
 
-    def solve_traj(self, init_joint, final_joint, coeffs={}, object_pos=[0, 0.2, 0.83]):
+    def solve_traj(self, init_joint, final_joint, potential_goal_states, coeffs={}, object_pos=[0, 0.2, 0.83]):
         """
         Calculates an optimal trajectory from init_joint to final_joint based on the weights in coeffs.
         Returns joint trajectory and corresponding end effector trajectory
@@ -158,11 +158,11 @@ class TrajectoryPlanner:
         self.scene.robot.SetDOFValues(init_joint, self.scene.manipulator.GetArmIndices())
 
         _, default_traj = self.get_default_traj(
-            init_joint, final_joint, self.n_pred_timesteps)
+            init_joint, final_joint, self.n_pred_timesteps, potential_goal_states)
         self.scene.robot.SetDOFValues(init_joint, self.scene.manipulator.GetArmIndices())
 
         request = req_util.create_empty_request(
-            self.n_pred_timesteps, final_joint, self.scene.manipulator_name)
+            self.n_pred_timesteps, final_joint, self.scene.manipulator_name,potential_goal_states)
         if "distance" in coeffs:
             req_util.add_distance_cost(request, self.complete_pred_traj_means_expanded,
                                        self.complete_pred_traj_vars_expanded, coeffs["distance"], self.n_human_joints, self.scene.all_links)

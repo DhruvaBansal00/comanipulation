@@ -82,7 +82,7 @@ class TrajectoryFramework:
             len(self.trajectory_solver.obs_rightarm_test_traj) / 12, # assuming 4 arm joints
             OBJECT_POS, default_traj)
 
-    def setup_test(self, init_joint, final_joint, traj_num=-1, execute=False):
+    def setup_test(self, init_joint, final_joint, potential_goal_states, traj_num=-1, execute=False):
         """
         Gets a predicted human trajectory with ROS, then solves an optimal trajectory to respond 
         and potentially executes it.
@@ -107,20 +107,32 @@ class TrajectoryFramework:
         num_timesteps = self.trajectory_solver.n_pred_timesteps
 
         coeffs = {
-            "nominal": 100.0,
-            "distance": [2000.0 for _ in range(num_timesteps)],
-            "visibility": [1.5 for _ in range(num_timesteps)],
-            "regularize": [7.0 for _ in range(num_timesteps - 1)],
-            "legibility": 2000.0,
+            "nominal": 0.0,
+            "distance": [0.0 for _ in range(num_timesteps)],
+            "visibility": [0 for _ in range(num_timesteps)],
+            "regularize": [0.0 for _ in range(num_timesteps - 1)],
+            "legibility": 0.0,
             "collision": dict(cost=[20], dist_pen=[0.025]),
-            "smoothing": dict(cost=300, type=2)
+            "smoothing": dict(cost=0, type=2)
         }
 
+        
+        # coeffs = {
+        #     "nominal": 500,
+        #     "distance": [500 for _ in range(num_timesteps)],
+        #     "visibility": [0 for _ in range(num_timesteps)],
+        #     "regularize": [7.0 for _ in range(num_timesteps - 1)],
+        #     "legibility": 1000,
+        #     "collision": dict(cost=[20], dist_pen=[0.025]),
+        #     "smoothing": dict(cost=200, type=2)
+        # }
+        
+
         if traj_num > 0 and not self.is_real:
-            result, _ = self.trajectory_solver.solve_traj_save_plot_exec(init_joint, final_joint, coeffs=coeffs, 
+            result, _ = self.trajectory_solver.solve_traj_save_plot_exec(init_joint, final_joint, potential_goal_states, coeffs=coeffs, 
                 object_pos=OBJECT_POS, execute=execute)
         else:
-            result, _ = self.trajectory_solver.solve_traj(init_joint, final_joint, 
+            result, _ = self.trajectory_solver.solve_traj(init_joint, final_joint,potential_goal_states, 
                             coeffs=coeffs, object_pos=OBJECT_POS)
             if execute:
                 self.scene.execute_trajectory(result.GetTraj())

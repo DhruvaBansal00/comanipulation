@@ -284,16 +284,24 @@ def compute_distance_metric(scene, human_traj_expanded, num_obs_timesteps, num_t
     robot_traj_spline = traj_calc.cubic_interpolation(robot_traj, n_robot_joints)
     num_above_threshold = 0
 
+    dist_matrix = []
+    timesteps = []
+
     for t in range(num_obs_timesteps, num_total_timesteps):
         # robot trajectory is sampled at 10 Hz, human trajectory is sampled at 100 Hz
         # so robot discrete time is human discrete time / 10
         robot_timestep = (t - num_obs_timesteps) / 10.0
+        timesteps.append(robot_timestep)
         robot_joints = robot_traj_spline(robot_timestep)
 
         dist_t = get_separation_dist(scene, human_traj_expanded[t*n_human_joints*3 : (t+1)*n_human_joints*3], robot_joints)
+        dist_matrix.append(dist_t)
+
+
         if dist_t > distance_threshold:
             num_above_threshold += 1
-    
+    plt.plot(timesteps,dist_matrix)
+    plt.show()
     return num_above_threshold * 1.0 / (num_total_timesteps - num_obs_timesteps)
 
 def compute_visibility_metric(scene, full_head_test_traj_expanded, num_obs_timesteps, num_total_timesteps, robot_traj, object_pos):
@@ -315,9 +323,10 @@ def compute_visibility_metric(scene, full_head_test_traj_expanded, num_obs_times
     num_below_thres = 0
 
     visibilities = []
-
+    timesteps = []
     for t in range(num_obs_timesteps, num_total_timesteps):
         robot_timestep = (t - num_obs_timesteps) / 10.0
+        timesteps.append(robot_timestep)
         robot_joints = robot_traj_spline(robot_timestep)
         
         curr_head_pos = full_head_test_traj_expanded[t * 3: (t + 1) * 3]
@@ -327,7 +336,8 @@ def compute_visibility_metric(scene, full_head_test_traj_expanded, num_obs_times
 
         if vis_t < visibility_threshold:
             num_below_thres += 1
-    
+    # plt.plot(visibilities, timesteps)
+    # plt.show()
     return float(num_below_thres) / float(num_total_timesteps - num_obs_timesteps)
 
 def compute_legibility_metric(scene, robot_traj):

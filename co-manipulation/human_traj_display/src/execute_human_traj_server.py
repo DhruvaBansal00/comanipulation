@@ -10,7 +10,7 @@ def execute_human_traj(req):
     rate = rospy.Rate(1 / req.timestep_size)
     traj_length = len(req.head)
     print("Trajectory of length ", traj_length)
-    orientation_quart = tf.transformations.quaternion_from_euler(0, 0, 0)
+    orientation_quart = tf.transformations.quaternion_from_euler(1, 0, 0)
     for i in range(traj_length):
         # br.sendTransform((i/20.0, i/20.0, 0), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "human_pose", "world")
         br.sendTransform((req.right_shoulder[i].x, req.right_shoulder[i].y, req.right_shoulder[i].z), orientation_quart, rospy.Time.now(), "human_right_shoulder", "world")

@@ -17,35 +17,34 @@ def callback(data):
         predictedMeans, variances = [],[]
 
 
-        i = 0
+        #i = 0
 #        print(len(expData))
         for row in expData:
             #for col in row:
-            if i % 10 == 0:
-                predictedMeans.append(row)
-            i += 1
-        i = 0
+            #if i % 10 == 0:
+            predictedMeans.append(row)
+            #i += 1
+        #i = 0
  #       print("NUM")
 
         #rint(np.array(traj).shape)
         for timestep in range(len(expSigma)):
             data = []
-            if i % 10 == 0:
-                for row in range(len(expSigma[timestep])):
-                    for col in expSigma[timestep][row]:
-                        data.append(col)
-                variances.append(data)
-            i+=1
+            #if i % 10 == 0:
+            for row in range(len(expSigma[timestep])):
+                for col in expSigma[timestep][row]:
+                    data.append(col)
+            variances.append(data)
+            #i+=1
         
         #print("Mean length = " + str(len(predictedMeans)) + " Variance length = " + str(len(variances)))
         df1 = pd.DataFrame(predictedMeans)
-        df1.to_csv('predSampledtraj_2610_trimmed.csv',index=False, header=False)
+        df1.to_csv('predSampledtraj_1001_trimmed.csv',index=False, header=False)
         df2 = pd.DataFrame(variances)
-        df2.to_csv('varPredSampledtraj_2610_trimmed.csv',index=False, header=False)
+        df2.to_csv('varPredSampledtraj_1001_trimmed.csv',index=False, header=False)
         df3 = pd.DataFrame(traj)
-        df3.to_csv('traj_2610_trimmed.csv',index=False,header=False)
-        df3.append(df1, ignore_index=True)
-        df3.to_csv('traj_2610.csv', index=False,header=False)
+        df3.to_csv('traj_1001_trimmed.csv',index=False,header=False)
+        df3.append(df1, ignore_index=True).to_csv('traj_1001.csv', index=False,header=False)
 
         #print(predictedMeans)
         # print(str(len(expSigma)) + " " + str(len(expSigma[0])) + " " + str(len(expSigma[0][0])))

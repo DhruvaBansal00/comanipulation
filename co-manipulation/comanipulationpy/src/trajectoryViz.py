@@ -69,12 +69,12 @@ def plot_pred_obs_trajectory(pos_name, file_name, human_obs_pos = None, human_do
     plt.show()
 
 
-obs_pose_mean = "../human_prob_models/scripts/csvFiles/Test/traj_703.csv"
+obs_pose_mean = "../human_prob_models/scripts/csvFiles/Test/traj_1001.csv"
 human_obs_pos = read_human_poses_mean(obs_pose_mean)
-pred_pose_mean = "../human_prob_models/scripts/csvFiles/Predictions/predtraj_703_trimmed.csv"
+pred_pose_mean = "../human_prob_models/scripts/csvFiles/Predictions/predSampledtraj_1001_trimmed.csv"
 human_pred_pos = read_human_poses_mean(pred_pose_mean)
 
-plot_pred_obs_trajectory("HumanPose", "plots/HumanPoseViz/traj_703_combined.png", human_obs_pos, 4, human_pred_pos)
+plot_pred_obs_trajectory("HumanPose", "plots/HumanPoseViz/traj_4008_combined.png", human_obs_pos, 4, human_pred_pos)
 
 
 # obs_pose_mean = "../human_prob_models/scripts/csvFiles/Test/traj_144.csv"

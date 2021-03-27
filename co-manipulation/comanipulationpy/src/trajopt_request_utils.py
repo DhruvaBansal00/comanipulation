@@ -1,6 +1,6 @@
 import numbers
 
-def create_empty_request(num_timesteps, joint_target, manipulator_name):
+def create_empty_request(num_timesteps, joint_target, manipulator_name,potential_goal_states):
     request = {
         "basic_info" : {
             "n_steps" : num_timesteps,
@@ -15,7 +15,8 @@ def create_empty_request(num_timesteps, joint_target, manipulator_name):
         ],
         "init_info" : {
             "type" : "straight_line", # straight line in joint space.
-            "endpoint" : joint_target
+            "endpoint" : joint_target,
+            "other_goal_states": potential_goal_states
         }
     }
     return request
