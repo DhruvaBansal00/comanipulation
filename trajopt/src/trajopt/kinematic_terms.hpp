@@ -182,9 +182,11 @@ struct VisibilityCostPlotter : public Plotter {
 
 // Legibility Cost
 struct LegibilityCostCalculator : public VectorOfVector {
+  VectorXd goal_candidates_;
   ConfigurationPtr manip_;
   OR::KinBody::LinkPtr link_;
-  LegibilityCostCalculator(ConfigurationPtr manip, OR::KinBody::LinkPtr link) :
+  LegibilityCostCalculator(VectorXd goal_candidates, ConfigurationPtr manip, OR::KinBody::LinkPtr link) :
+    goal_candidates_(goal_candidates),
     manip_(manip),
     link_(link) {}
   VectorXd operator()(const VectorXd& dof_vals) const;

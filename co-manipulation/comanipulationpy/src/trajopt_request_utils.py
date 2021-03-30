@@ -96,7 +96,8 @@ def add_legibility_cost(request, coeffs, link):
         if cost["type"] == "legibility_cost":
             print("ERROR: Legibility cost already present in request")
             return request
-    leg_cost = {"type" : "legibility_cost", "params" : {"link" : link, "coeffs" : coeffs}}
+    # goal candidates: far reaching then near reaching
+    leg_cost = {"type" : "legibility_cost", "params" : {"link" : link, "coeffs" : coeffs, "goal_candidates": [0.25230066, 0.03510073, 1.05211301, -0.02142859, 0.19980243, 1.0699198]}}
     request["costs"].append(leg_cost)
     return request
 
@@ -220,3 +221,4 @@ def add_joint_vel_cost(request, coeffs):
         joint_vel_cost["params"]["coeffs"] = [coeffs]
     else:
         joint_vel_cost["params"]["coeffs"] = coeffs
+    request["costs"].append(joint_vel_cost)

@@ -76,6 +76,15 @@ class TrajectoryPlanner:
             traj_num)
         self.complete_pred_traj_means_expanded, self.complete_pred_traj_vars_expanded = traj_utils.expand_human_pred(
             self.complete_pred_traj_means, self.complete_pred_traj_vars)
+        # # write out expanded traj
+        # with open('means.csv', 'w') as f1:
+        #     with open('vars.csv', 'w') as f2:
+        #         s1, s2 = [str(x) for x in self.complete_pred_traj_means_expanded], [str(x) for x in self.complete_pred_traj_vars_expanded]
+        #         for i in range(20):
+        #             i1, i2 = 33*i, 99*i
+        #             f1.write(",".join(s1[i1:i1+33]) + "\n")
+        #             f2.write(",".join(s2[i2:i2+99]) + "\n")
+
         self.n_pred_timesteps = len(
             self.complete_pred_traj_means_expanded) / (self.n_human_joints * 3)
         

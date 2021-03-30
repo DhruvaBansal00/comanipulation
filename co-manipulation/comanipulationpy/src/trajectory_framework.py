@@ -111,7 +111,7 @@ class TrajectoryFramework:
             "distance": [2000.0 for _ in range(num_timesteps)],
             "visibility": [1.5 for _ in range(num_timesteps)],
             "regularize": [7.0 for _ in range(num_timesteps - 1)],
-            "legibility": 2000.0,
+            "legibility": 100.0,
             "collision": dict(cost=[20], dist_pen=[0.025]),
             "smoothing": dict(cost=300, type=2)
         }
@@ -125,6 +125,7 @@ class TrajectoryFramework:
             if execute:
                 self.scene.execute_trajectory(result.GetTraj())
 
+        return
         default_traj, _ = self.trajectory_solver.get_default_traj(init_joint, final_joint, self.trajectory_solver.n_pred_timesteps)
         # print("Trajectory = " + str(result.GetTraj()))
         # print("Default Traj = " + str(default_traj))

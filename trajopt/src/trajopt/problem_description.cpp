@@ -839,13 +839,23 @@ void LegibilityCostInfo::fromJson(const Value& v) {
     PRINT_AND_THROW(boost::format("invalid link name: %s")%linkstr);
   }
 
-  const char* all_fields[] = {"coeffs", "link"};
+  
+
+  childFromJson(params, goals_v, "goal_candidates");
+  goal_candidates = VectorXd::Zero(goals_v.size());
+
+  for (int i = 0; i < goals_v.size(); i++) {
+    goal_candidates(i) = goals_v.at(i);
+  }
+
+
+  const char* all_fields[] = {"coeffs", "link", "goal_candidates"};
   ensure_only_members(params, all_fields, sizeof(all_fields)/sizeof(char*));
 
 }
 
 void LegibilityCostInfo::hatch(TrajOptProb& prob) {
-  VectorOfVectorPtr f(new LegibilityCostCalculator(prob.GetRAD(), link));
+  VectorOfVectorPtr f(new LegibilityCostCalculator(goal_candidates, prob.GetRAD(), link));
   if (term_type == TT_COST) {
     VectorXd coeffs_(1);
     coeffs_ << coeffs;

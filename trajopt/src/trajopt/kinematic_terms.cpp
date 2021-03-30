@@ -454,16 +454,13 @@ VectorXd LegibilityCostCalculator::operator()(const VectorXd& dof_vals) const {
   double err = 0;
   // scaling function
   VectorXd f_t(num_timesteps - 1);
-  // regularizer constant
-  double lambda = 0.0;
 
   // Get cost of optimal traj from Start to Goal of optimal traj
   manip_->SetDOFValues(toDblVec(dof_vals.segment((num_timesteps - 1) * 7, 7)));
   VectorXd p_eef_g = toVector3d(link_->GetTransform().trans);
   manip_->SetDOFValues(toDblVec(dof_vals.segment(0, 7)));
   VectorXd p_eef_s = toVector3d(link_->GetTransform().trans);
-  double cstar_s_g = (p_eef_g - p_eef_s).norm();
-
+  
   // For every timestep (upto T - 1)
   for (int t = 0; t < num_timesteps - 1; t++) {
     // Update scaling factor
@@ -472,21 +469,35 @@ VectorXd LegibilityCostCalculator::operator()(const VectorXd& dof_vals) const {
     // Calulcate length of segment and store
     manip_->SetDOFValues(toDblVec(dof_vals.segment(t * 7, 7)));
     VectorXd p_eef_t = toVector3d(link_->GetTransform().trans);
+    
     manip_->SetDOFValues(toDblVec(dof_vals.segment((t + 1) * 7, 7)));
     VectorXd p_eef_t1 = toVector3d(link_->GetTransform().trans);
     d_eef_q(t) = (p_eef_t1 - p_eef_t).norm();
     
     // Calculate cost of path till (t + 1)
-    double c_s_q = d_eef_q.segment(0, t+1).sum();
-    // Calculate cost of optimal path from (t + 1) to goal
-    double cstar_q_g = (p_eef_g - p_eef_t1).norm();
-    // Calculate probability of goal given path till (t + 1)
-    double prob_g_given_q = exp(-c_s_q - cstar_q_g)/exp(-cstar_s_g);
+    double c_s_q = d_eef_q.segment(0, t).sum();
+
+    // for each goal location
+    double goal_weight = 0;
+    double total_weight = 0;
+    for (int i_g = 0; i_g < goal_candidates_.size(); i_g += 3) {
+      VectorXd pos_g = goal_candidates_.segment(i_g, 3);
+
+      double cstar_s_g = (pos_g - p_eef_s).norm();
+      // Calculate cost of optimal path from (t + 1) to goal
+      double cstar_q_g = (p_eef_g - p_eef_t1).norm();
+      // Calculate probability of goal given path till (t + 1)
+      double prob_g_given_q = exp(-c_s_q - cstar_q_g + cstar_s_g);
+      if (i_g == 0) {
+        goal_weight += prob_g_given_q;
+      }
+      total_weight += prob_g_given_q;
+    }
     // accumulate error as product of prob and scaling function
-    err += prob_g_given_q * f_t(t);
+    err += (1 - (goal_weight/total_weight)) * f_t(t);
   }
   // divide error by sum of scaling function and subtract regularizer
-  err = (err / f_t.sum()) - (lambda * d_eef_q.sum());
+  err = err / f_t.sum();
 
   // reformat error as vector
   VectorXd err_vec(1);

@@ -347,6 +347,8 @@ struct VisibilityCostInfo : public TermInfo, public MakesCost, public MakesConst
 struct LegibilityCostInfo : public TermInfo, public MakesCost, public MakesConstraint {
   double coeffs;
   KinBody::LinkPtr link;
+  DblVec goals_v;
+  VectorXd goal_candidates;
   void fromJson(const Value& v);
   void hatch(TrajOptProb& prob);
   DEFINE_CREATE(LegibilityCostInfo);
